@@ -13,6 +13,7 @@ import { RolesGuard } from './modules/users/users.guard';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { BullModule } from '@nestjs/bull';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { CategoriesModule } from './modules/categories/categories.module';
 import * as process from 'node:process';
 
 @Module({
@@ -51,6 +52,7 @@ import * as process from 'node:process';
     }),
     AuthModule,
     UsersModule,
+    CategoriesModule,
   ],
   controllers: [AppController, AuthController],
   providers: [
