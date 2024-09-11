@@ -7,29 +7,46 @@ dotenv.config();
 
 export default class CategorySeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {
-    await dataSource.query('TRUNCATE "category" RESTART IDENTITY;');
+    await dataSource.query(
+      'TRUNCATE "product" RESTART IDENTITY CASCADE; TRUNCATE "category" RESTART IDENTITY CASCADE;',
+    );
     const repository = dataSource.getRepository(Category);
     await repository.insert([
       {
-        name: 'gift',
+        name: 'romantic-flowers',
         description:
-          'Simple and clean flower arrangements with a modern touch.',
-        parent: null,
+          "Beautiful flowers for romantic occasions like anniversaries or Valentine's Day.",
       },
       {
-        name: 'gift-baskets',
+        name: 'get-well-flowers',
         description:
-          'Thoughtfully curated gift baskets with flowers and treats.',
+          'Bright flowers to lift spirits and wish a speedy recovery.',
         parent: {
           id: 1,
         },
       },
       {
-        name: 'flower-chocolate-combos',
+        name: 'seasonal-flowers',
         description:
-          'Perfect combinations of flowers and chocolates for gifting.',
+          'Fresh flowers for each season, perfect for year-round gifting.',
         parent: {
-          id: 2,
+          id: 1,
+        },
+      },
+      {
+        name: 'luxury-flowers',
+        description:
+          'Exclusive, high-end floral arrangements for special occasions.',
+        parent: {
+          id: 3,
+        },
+      },
+      {
+        name: 'flower-subscriptions',
+        description:
+          'Weekly or monthly flower delivery plans to keep fresh blooms at your doorstep.',
+        parent: {
+          id: 4,
         },
       },
     ]);

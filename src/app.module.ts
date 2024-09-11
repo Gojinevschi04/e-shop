@@ -15,6 +15,7 @@ import { BullModule } from '@nestjs/bull';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { CategoriesModule } from './modules/categories/categories.module';
 import * as process from 'node:process';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import * as process from 'node:process';
     AuthModule,
     UsersModule,
     CategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController, AuthController],
   providers: [
