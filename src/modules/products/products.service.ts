@@ -7,6 +7,8 @@ import { ProductDto } from './dto/product.dto';
 import { plainToInstance } from 'class-transformer';
 import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { PRODUCT_PAGINATION_CONFIG } from './config-product';
+import { FilesService } from '../files/files.service';
+import { FileDto } from '../files/file.dto';
 
 @Injectable()
 export class ProductsService {
@@ -15,13 +17,18 @@ export class ProductsService {
     private productsRepository: Repository<Product>,
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>,
+    private filesServices: FilesService,
   ) {}
 
   async create(
     createProductDto: ProductDto,
-    // imageFile: Express.Multer.File,
+    file: FileDto,
   ): Promise<ProductDto> {
     const newProduct = plainToInstance(Product, createProductDto);
+    console.log(file);
+
+    const image = await this.filesServices.saveFileData(file);
+    newProduct.image = image;
 
     const category = await this.categoriesRepository.findOneBy({
       id: createProductDto.categoryId,

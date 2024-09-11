@@ -16,6 +16,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { CategoriesModule } from './modules/categories/categories.module';
 import * as process from 'node:process';
 import { ProductsModule } from './modules/products/products.module';
+import { FilesModule } from './modules/files/files.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -51,10 +55,17 @@ import { ProductsModule } from './modules/products/products.module';
         },
       }),
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'storage'),
+    }),
+    MulterModule.register({
+      dest: './storage',
+    }),
     AuthModule,
     UsersModule,
     CategoriesModule,
     ProductsModule,
+    FilesModule,
   ],
   controllers: [AppController, AuthController],
   providers: [

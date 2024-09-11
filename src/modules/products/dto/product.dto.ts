@@ -8,9 +8,8 @@ export class ProductDto {
   @ApiProperty()
   @IsNotEmpty()
   description: string;
-  // @ApiProperty()
-  // @IsNotEmpty()
-  // image: Image;
+  @ApiProperty({ type: 'string', format: 'binary', required: true })
+  file: Express.Multer.File;
   @ApiProperty()
   @IsNotEmpty()
   price: number;

@@ -4,10 +4,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Category } from '../categories/category.entity';
+import { File } from '../files/file.entity';
 
 @Entity()
 export class Product {
@@ -20,8 +22,11 @@ export class Product {
   @Column()
   description: string;
 
-  // @Column()
-  // image: Image;
+  @JoinColumn()
+  @OneToOne(() => File, {
+    nullable: true,
+  })
+  image?: File;
 
   @Column()
   price: number;

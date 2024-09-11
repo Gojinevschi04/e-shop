@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -31,6 +32,7 @@ import {
 import { Product } from './product.entity';
 import { PRODUCT_PAGINATION_CONFIG } from './config-product';
 import { FileInterceptor } from '@nestjs/platform-express';
+import LocalFilesInterceptor from './interceptors/files.interceptor';
 
 @Public()
 @ApiTags('products')
@@ -42,22 +44,31 @@ export class ProductsController {
     type: ProductDto,
     description: 'Create new product',
   })
-  // @ApiConsumes('multipart/form-data')
-  // @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    LocalFilesInterceptor({
+      fieldName: 'file',
+      path: '',
+    }),
+  )
   @Post()
   create(
     @Body() createProductDto: ProductDto,
-    // @UploadedFile(
-    //   new ParseFilePipe({
-    //     validators: [
-    //       new MaxFileSizeValidator({ maxSize: 1000 }),
-    //       new FileTypeValidator({ fileType: '/(jpg|jpeg|png|gif)$/' }),
-    //     ],
-    //   }),
-    // )
-    // imageFile: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: Math.pow(1024, 2) }), // 1 MB
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
   ): Promise<ProductDto> {
-    return this.productService.create(createProductDto);
+    return this.productService.create(createProductDto, {
+      path: file.filename,
+      originalName: file.originalname,
+      mimetype: file.mimetype,
+    });
   }
 
   @PaginatedSwaggerDocs(Product, PRODUCT_PAGINATION_CONFIG)
