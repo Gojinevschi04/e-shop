@@ -25,9 +25,11 @@ export const PRODUCT_PAGINATION_CONFIG: PaginateConfig<Product> = {
     'category.name',
     'price',
     'material',
+    'image.id',
+    'image.originalName',
   ],
   filterableColumns: {
     name: true,
   },
-  relations: ['category'],
+  relations: ['category', 'image'],
 };

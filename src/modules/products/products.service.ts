@@ -9,6 +9,7 @@ import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
 import { PRODUCT_PAGINATION_CONFIG } from './config-product';
 import { FilesService } from '../files/files.service';
 import { FileDto } from '../files/file.dto';
+import { File } from '../files/file.entity';
 
 @Injectable()
 export class ProductsService {
@@ -17,18 +18,20 @@ export class ProductsService {
     private productsRepository: Repository<Product>,
     @InjectRepository(Category)
     private categoriesRepository: Repository<Category>,
+    @InjectRepository(File)
+    private filesRepository: Repository<File>,
     private filesServices: FilesService,
   ) {}
 
   async create(
     createProductDto: ProductDto,
-    file: FileDto,
+    file?: FileDto,
   ): Promise<ProductDto> {
     const newProduct = plainToInstance(Product, createProductDto);
-    console.log(file);
 
-    const image = await this.filesServices.saveFileData(file);
-    newProduct.image = image;
+    if (file) {
+      newProduct.image = await this.filesServices.saveFileData(file);
+    }
 
     const category = await this.categoriesRepository.findOneBy({
       id: createProductDto.categoryId,
@@ -63,19 +66,15 @@ export class ProductsService {
   async update(
     id: number,
     updateProductDto: ProductDto,
+    file?: FileDto,
   ): Promise<ProductDto | null> {
-    const oldProductData = await this.productsRepository.findOneBy({
+    let oldProductData = await this.productsRepository.findOneBy({
       id: id,
     });
 
     if (oldProductData == null) {
       throw new BadRequestException('Nonexistent product to update');
     }
-
-    const productData = this.productsRepository.merge(
-      oldProductData,
-      updateProductDto,
-    );
 
     const category = await this.categoriesRepository.findOneBy({
       id: updateProductDto.categoryId,
@@ -85,15 +84,43 @@ export class ProductsService {
       throw new BadRequestException('Nonexistent category');
     }
 
-    productData.category = category;
+    if (oldProductData.image != null) {
+      await this.filesServices.deleteFile(oldProductData.image.id);
+      await this.filesRepository.delete(oldProductData.image.id);
+    }
+
+    oldProductData = this.productsRepository.merge(
+      oldProductData,
+      updateProductDto,
+    );
+
+    if (file) {
+      const image = await this.filesServices.saveFileData(file);
+      oldProductData.image = image;
+    }
+
+    oldProductData.category = category;
 
     return plainToInstance(
       ProductDto,
-      this.productsRepository.save(productData),
+      this.productsRepository.save(oldProductData),
     );
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: number): Promise<void> {
+    const productData = await this.productsRepository.findOneBy({
+      id: id,
+    });
+
+    if (productData == null) {
+      throw new BadRequestException('Nonexistent product to delete');
+    }
+
+    if (productData.image != null) {
+      await this.filesServices.deleteFile(productData.image.id);
+      await this.filesRepository.delete(productData.image.id);
+    }
     await this.productsRepository.delete(id);
+    return;
   }
 }

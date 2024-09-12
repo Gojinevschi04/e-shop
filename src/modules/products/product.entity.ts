@@ -23,8 +23,10 @@ export class Product {
   description: string;
 
   @JoinColumn()
-  @OneToOne(() => File, {
+  @OneToOne(() => File, (image) => image.id, {
     nullable: true,
+    onDelete: 'CASCADE',
+    eager: true,
   })
   image?: File;
 
@@ -45,6 +47,7 @@ export class Product {
 
   @ManyToOne(() => Category, (category) => category.id, {
     onDelete: 'RESTRICT',
+    eager: true,
   })
   @JoinColumn()
   category: Category;

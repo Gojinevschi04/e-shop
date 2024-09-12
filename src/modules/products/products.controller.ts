@@ -10,7 +10,6 @@ import {
   ParseIntPipe,
   Post,
   Put,
-  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -31,7 +30,6 @@ import {
 } from 'nestjs-paginate';
 import { Product } from './product.entity';
 import { PRODUCT_PAGINATION_CONFIG } from './config-product';
-import { FileInterceptor } from '@nestjs/platform-express';
 import LocalFilesInterceptor from './interceptors/files.interceptor';
 
 @Public()
@@ -60,10 +58,14 @@ export class ProductsController {
           new MaxFileSizeValidator({ maxSize: Math.pow(1024, 2) }), // 1 MB
           new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
         ],
+        fileIsRequired: false,
       }),
     )
-    file: Express.Multer.File,
+    file?: Express.Multer.File,
   ): Promise<ProductDto> {
+    if (file == null) {
+      return this.productService.create(createProductDto);
+    }
     return this.productService.create(createProductDto, {
       path: file.filename,
       originalName: file.originalname,
@@ -91,17 +93,39 @@ export class ProductsController {
     description: 'Update product',
   })
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    LocalFilesInterceptor({
+      fieldName: 'file',
+      path: '',
+    }),
+  )
   @Put(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProductDto: ProductDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: Math.pow(1024, 2) }), // 1 MB
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ],
+        fileIsRequired: false,
+      }),
+    )
+    file: Express.Multer.File,
   ): Promise<ProductDto | null> {
-    return this.productService.update(id, updateProductDto);
+    if (file == null) {
+      return this.productService.update(id, updateProductDto);
+    }
+    return this.productService.update(id, updateProductDto, {
+      path: file.filename,
+      originalName: file.originalname,
+      mimetype: file.mimetype,
+    });
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: number): Promise<void> {
     return this.productService.remove(id);
   }
 }

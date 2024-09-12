@@ -1,7 +1,9 @@
 import { ApiTags } from '@nestjs/swagger';
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Res } from '@nestjs/common';
 import { FilesService } from './files.service';
+import { Public } from '../auth/public.decorator';
 
+@Public()
 @ApiTags('files')
 @Controller('files')
 export class FilesController {
@@ -13,5 +15,10 @@ export class FilesController {
     @Res() res: any,
   ): Promise<any> {
     return this.filesService.findUploadedFile(image, res);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: number): Promise<void> {
+    return this.filesService.deleteFile(id);
   }
 }
