@@ -24,7 +24,6 @@ export class CartService {
 
   async addProduct(productId: number, user: User): Promise<CartItemDto> {
     const cartDto = new CartItemDto();
-    // cartDto.userId = user.id;
 
     const product = await this.productRepository.findOneBy({ id: productId });
     if (!product) {
@@ -85,10 +84,12 @@ export class CartService {
     });
 
     if (product == null) {
-      throw new BadRequestException('Nonexistent parent category');
+      throw new BadRequestException('Nonexistent product');
     }
 
     oldCartItemData.product = product;
+    oldCartItemData.totalPrice =
+      updateCartItemDto.totalPrice * updateCartItemDto.quantity;
 
     return plainToInstance(
       CartItemDto,

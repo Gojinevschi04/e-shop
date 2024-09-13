@@ -58,7 +58,7 @@ export class CartController {
     return this.cartService.removeProduct(id);
   }
 
-  @Delete('/allByUser')
+  @Delete('')
   async removeAllByUser(@Request() req: any): Promise<void> {
     return this.cartService.removeAllByUser(req.user);
   }
