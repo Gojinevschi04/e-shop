@@ -20,6 +20,8 @@ import { FilesModule } from './modules/files/files.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { MulterModule } from '@nestjs/platform-express';
+import { CartModule } from './modules/cart/cart.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
@@ -66,6 +68,8 @@ import { MulterModule } from '@nestjs/platform-express';
     CategoriesModule,
     ProductsModule,
     FilesModule,
+    CartModule,
+    OrdersModule,
   ],
   controllers: [AppController, AuthController],
   providers: [
