@@ -22,12 +22,14 @@ import { join } from 'path';
 import { MulterModule } from '@nestjs/platform-express';
 import { CartModule } from './modules/cart/cart.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import stripeConfig from './config/stripe';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [typeorm],
+      load: [typeorm, stripeConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -70,6 +72,7 @@ import { OrdersModule } from './modules/orders/orders.module';
     FilesModule,
     CartModule,
     OrdersModule,
+    PaymentsModule,
   ],
   controllers: [AppController, AuthController],
   providers: [

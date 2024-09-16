@@ -1,6 +1,5 @@
 import { UserRole } from '../enums/user.role';
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,

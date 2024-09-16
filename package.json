@@ -26,6 +26,7 @@
     "migration:revert": "npm run build && npm run typeorm -- -d ./src/config/typeorm.ts migration:revert"
   },
   "dependencies": {
+    "@golevelup/nestjs-stripe": "^0.8.2",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bull": "^10.2.1",
     "@nestjs/bullmq": "^10.2.1",
@@ -52,6 +53,7 @@
     "pg": "^8.12.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
+    "stripe": "^14.19.0",
     "typeorm": "^0.3.20",
     "typeorm-extension": "^3.6.1",
     "uuid": "^10.0.0"
