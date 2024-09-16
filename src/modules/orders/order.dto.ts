@@ -7,6 +7,8 @@ export class OrderDto {
   @ApiProperty()
   productsId: number[];
   @ApiProperty()
+  productsQuantities: number[];
+  @ApiProperty()
   status: OrderStatus;
   @ApiProperty()
   address: string;

@@ -29,13 +29,19 @@ export class CartService {
     if (!product) {
       throw new NotFoundException('Nonexistent product to add');
     }
-    cartDto.productId = product.id;
-
-    const cartItem = plainToInstance(CartItem, cartDto);
-    cartItem.product = product;
-    cartItem.user = user;
-    cartItem.quantity = 1;
-    cartItem.totalPrice = product.price;
+    let cartItem = await this.cartRepository.findOneBy({
+      product: { id: productId },
+    });
+    if (!cartItem) {
+      cartDto.productId = product.id;
+      cartItem = plainToInstance(CartItem, cartDto);
+      cartItem.product = product;
+      cartItem.user = user;
+      cartItem.quantity = 1;
+      cartItem.totalPrice = product.price;
+    } else {
+      cartItem.quantity += 1;
+    }
 
     return plainToInstance(CartItemDto, this.cartRepository.save(cartItem));
   }

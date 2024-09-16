@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { User } from '../users/user.entity';
 import { OrderStatus } from './order-status';
-import { CartItem } from '../cart/cart-item.entity';
+import { Product } from '../products/product.entity';
 
 @Entity()
 export class Order {
@@ -24,11 +24,11 @@ export class Order {
   @JoinColumn()
   user: User;
 
-  @ManyToMany(() => CartItem, (product) => product.id, {
+  @ManyToMany(() => Product, (product) => product.id, {
     eager: true,
   })
   @JoinTable()
-  products: CartItem[];
+  products: Product[];
 
   @Column()
   status: OrderStatus;

@@ -4,7 +4,9 @@ import { Product } from '../../modules/products/product.entity';
 
 export default class ProductSeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {
-    await dataSource.query('TRUNCATE "product" RESTART IDENTITY;');
+    await dataSource.query(
+      'TRUNCATE "cart_item" RESTART IDENTITY CASCADE; TRUNCATE "product" RESTART IDENTITY CASCADE;',
+    );
     const repository = dataSource.getRepository(Product);
     await repository.insert([
       {

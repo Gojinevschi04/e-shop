@@ -10,7 +10,9 @@ dotenv.config();
 
 export default class UserSeeder implements Seeder {
   public async run(dataSource: DataSource): Promise<void> {
-    await dataSource.query('TRUNCATE "user" RESTART IDENTITY;');
+    await dataSource.query(
+      'TRUNCATE "cart_item" RESTART IDENTITY CASCADE; TRUNCATE "user" RESTART IDENTITY CASCADE;',
+    );
     const repository = dataSource.getRepository(User);
     await repository.insert([
       {

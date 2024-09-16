@@ -14,6 +14,10 @@ import { ORDER_PAGINATION_CONFIG } from './config-order';
 import { plainToInstance } from 'class-transformer';
 import { OrderDto } from './order.dto';
 import { OrderStatus } from './order-status';
+import {
+  calculateCartItemsTotalSum,
+  calculateProductsTotalSum,
+} from '../../utility/order-utils';
 
 @Injectable()
 export class OrdersService {
@@ -22,7 +26,7 @@ export class OrdersService {
     private orderRepository: Repository<Order>,
     @InjectRepository(CartItem)
     private cartRepository: Repository<CartItem>,
-    @InjectRepository(CartItem)
+    @InjectRepository(Product)
     private productRepository: Repository<Product>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -31,15 +35,12 @@ export class OrdersService {
   async create(user: User, address: string): Promise<OrderDto> {
     const orderDto = new OrderDto();
 
-    const items = await this.cartRepository.findBy({ user: { id: user.id } });
+    const cartProducts = await this.cartRepository.findBy({
+      user: { id: user.id },
+    });
 
-    if (!items) {
+    if (!cartProducts.length) {
       throw new NotFoundException('Empty cart');
-    }
-
-    let totalSum = 0;
-    for (const item of items) {
-      totalSum += item.totalPrice;
     }
 
     orderDto.address = address;
@@ -47,14 +48,21 @@ export class OrdersService {
 
     const order = plainToInstance(Order, orderDto);
     order.user = user;
-    order.products = items;
-    order.totalSum = totalSum;
+    const products = [];
+
+    for (const cartProduct of cartProducts) {
+      products.push(cartProduct.product);
+    }
+    await this.cartRepository.remove(cartProducts);
+
+    order.products = products;
+    order.totalSum = calculateCartItemsTotalSum(cartProducts);
 
     return plainToInstance(OrderDto, this.orderRepository.save(order));
   }
 
   async update(id: number, updateOrderDto: OrderDto): Promise<OrderDto | null> {
-    const oldOrderData = await this.orderRepository.findOneBy({ id: id });
+    let oldOrderData = await this.orderRepository.findOneBy({ id: id });
     if (!oldOrderData) {
       throw new BadRequestException('Nonexistent order to update');
     }
@@ -65,11 +73,34 @@ export class OrdersService {
     if (!user) {
       throw new NotFoundException('Invalid user id');
     }
-    const items = await this.productRepository.find({
-      where: {
-        id: In(updateOrderDto.productsId),
-      },
+
+    if (!Object.values(OrderStatus).includes(updateOrderDto.status)) {
+      throw new BadRequestException('Invalid status');
+    }
+
+    if (
+      updateOrderDto.productsId.length !==
+      updateOrderDto.productsQuantities.length
+    ) {
+      throw new BadRequestException('Unmatched products with quantities');
+    }
+
+    const products = await this.productRepository.findBy({
+      id: In(updateOrderDto.productsId),
     });
+
+    if (!products.length) {
+      throw new BadRequestException('Nonexistent products to add to order');
+    }
+
+    oldOrderData = this.orderRepository.merge(oldOrderData, updateOrderDto);
+
+    oldOrderData.products = products;
+    oldOrderData.user = user;
+    oldOrderData.totalSum = calculateProductsTotalSum(
+      products,
+      updateOrderDto.productsQuantities,
+    );
 
     return plainToInstance(OrderDto, this.orderRepository.save(oldOrderData));
   }
@@ -99,7 +130,14 @@ export class OrdersService {
     );
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: number): Promise<void> {
+    const data = await this.orderRepository.findOneBy({
+      id: id,
+    });
+
+    if (data == null) {
+      throw new BadRequestException('Nonexistent order to delete');
+    }
     await this.orderRepository.delete(id);
   }
 }

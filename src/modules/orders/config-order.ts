@@ -2,20 +2,13 @@ import { PaginateConfig } from 'nestjs-paginate';
 import { Order } from './order.entity';
 
 export const ORDER_PAGINATION_CONFIG: PaginateConfig<Order> = {
-  sortableColumns: ['id', 'user.id', 'status', 'address', 'totalSum'],
+  sortableColumns: ['id', 'status', 'address', 'totalSum'],
   nullSort: 'last',
   defaultSortBy: [['id', 'DESC']],
-  searchableColumns: [
-    'id',
-    'user.id',
-    'status',
-    'address',
-    'totalSum',
-    'products',
-  ],
-  select: ['id', 'user.id', 'products', 'status', 'address', 'totalSum'],
+  searchableColumns: ['id', 'status', 'address', 'totalSum'],
+  select: ['products', 'status', 'address', 'totalSum'],
   filterableColumns: {
-    name: true,
+    status: true,
   },
-  relations: ['parent'],
+  relations: ['user', 'products'],
 };

@@ -87,7 +87,14 @@ export class UsersService {
     await this.usersRepository.save(userData);
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: number): Promise<void> {
+    const data = await this.usersRepository.findOneBy({
+      id: id,
+    });
+
+    if (data == null) {
+      throw new BadRequestException('Nonexistent user to delete');
+    }
     await this.usersRepository.delete(id);
   }
 

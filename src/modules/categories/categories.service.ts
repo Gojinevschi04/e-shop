@@ -80,7 +80,14 @@ export class CategoriesService {
     );
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: number): Promise<void> {
+    const data = await this.categoriesRepository.findOneBy({
+      id: id,
+    });
+
+    if (data == null) {
+      throw new BadRequestException('Nonexistent category to delete');
+    }
     await this.categoriesRepository.delete(id);
   }
 }

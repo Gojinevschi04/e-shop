@@ -72,7 +72,7 @@ export class OrdersController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@Param('id') id: number): Promise<void> {
     return this.ordersService.remove(id);
   }
 }
