@@ -12,6 +12,7 @@ import {
 import { User } from '../users/user.entity';
 import { OrderStatus } from './order-status';
 import { Product } from '../products/product.entity';
+import { PaymentStatus } from '../payments/payment-status';
 
 @Entity()
 export class Order {
@@ -29,6 +30,13 @@ export class Order {
   })
   @JoinTable()
   products: Product[];
+
+  @Column({
+    name: 'payment_status',
+    type: 'varchar',
+    default: PaymentStatus.Created,
+  })
+  paymentStatus: PaymentStatus;
 
   @Column()
   status: OrderStatus;

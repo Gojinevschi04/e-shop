@@ -21,6 +21,7 @@ import { OrderDto } from './order.dto';
 import { Order } from './order.entity';
 import { ORDER_PAGINATION_CONFIG } from './config-order';
 import { OrderStatus } from './order-status';
+import { Stripe } from 'stripe';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -74,5 +75,11 @@ export class OrdersController {
   @Delete(':id')
   async remove(@Param('id') id: number): Promise<void> {
     return this.ordersService.remove(id);
+  }
+
+  @Post('stripe_webhook')
+  async webhook(@Body() event: Stripe.Event): Promise<object> {
+    await this.ordersService.updatePaymentStatus(event);
+    return { message: 'success' };
   }
 }

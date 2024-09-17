@@ -2,10 +2,11 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CartItem } from '../cart/cart-item.entity';
-import { In, Repository } from 'typeorm';
+import { In, Repository, UpdateResult } from 'typeorm';
 import { Product } from '../products/product.entity';
 import { User } from '../users/user.entity';
 import { paginate, Paginated, PaginateQuery } from 'nestjs-paginate';
@@ -18,6 +19,10 @@ import {
   calculateCartItemsTotalSum,
   calculateProductsTotalSum,
 } from '../../utility/order-utils';
+import { PaymentsService } from '../payments/payments.service';
+import { Stripe } from 'stripe';
+import { PaymentIntentEvent } from '../payments/payment-intent-event';
+import { PaymentStatus } from '../payments/payment-status';
 
 @Injectable()
 export class OrdersService {
@@ -30,6 +35,7 @@ export class OrdersService {
     private productRepository: Repository<Product>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private paymentsService: PaymentsService,
   ) {}
 
   async create(user: User, address: string): Promise<OrderDto> {
@@ -58,7 +64,15 @@ export class OrdersService {
     order.products = products;
     order.totalSum = calculateCartItemsTotalSum(cartProducts);
 
-    return plainToInstance(OrderDto, this.orderRepository.save(order));
+    const savedOrder = await this.orderRepository.save(order);
+    const paymentIntent = await this.paymentsService.createPaymentIntent(
+      savedOrder.id,
+      savedOrder.totalSum,
+    );
+    const clientSecret = paymentIntent.client_secret;
+    const updatedOrder = { ...savedOrder, clientSecret: clientSecret };
+
+    return plainToInstance(OrderDto, updatedOrder);
   }
 
   async update(id: number, updateOrderDto: OrderDto): Promise<OrderDto | null> {
@@ -117,6 +131,50 @@ export class OrdersService {
 
     order.status = status;
     return plainToInstance(OrderDto, this.orderRepository.save(order));
+  }
+
+  async updateOrder(id: number, order: Order): Promise<UpdateResult> {
+    await this.orderRepository.findOneBy({ id: id });
+    return await this.orderRepository.update(id, order);
+  }
+
+  async updatePaymentStatus(event: Stripe.Event): Promise<string> {
+    // @ts-ignore
+    const metadata = event.data.object['metadata'] as any;
+    const orderId = metadata.orderId as any;
+
+    const order = await this.orderRepository.findOneBy({ id: orderId });
+    if (!order) {
+      throw new NotFoundException('Nonexistent order to update');
+    }
+
+    switch (event.type) {
+      case PaymentIntentEvent.Succeeded:
+        order.paymentStatus = PaymentStatus.Succeeded;
+        break;
+
+      case PaymentIntentEvent.Processing:
+        order.paymentStatus = PaymentStatus.Processing;
+        break;
+
+      case PaymentIntentEvent.Failed:
+        order.paymentStatus = PaymentStatus.Failed;
+        break;
+
+      default:
+        order.paymentStatus = PaymentStatus.Created;
+        break;
+    }
+
+    const updateResult = await this.updateOrder(orderId, order);
+
+    if (updateResult.affected === 1) {
+      return `Record successfully updated with Payment Status ${order.paymentStatus}`;
+    } else {
+      throw new UnprocessableEntityException(
+        'The payment was not successfully updated',
+      );
+    }
   }
 
   async findAll(query: PaginateQuery): Promise<Paginated<Order>> {

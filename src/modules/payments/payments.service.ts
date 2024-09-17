@@ -21,7 +21,7 @@ export class PaymentsService {
   }
 
   async createPaymentIntent(
-    orderId: string,
+    orderId: number,
     totalAmount: number,
   ): Promise<Stripe.PaymentIntent> {
     if (!orderId || totalAmount < 1) {

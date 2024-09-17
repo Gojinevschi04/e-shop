@@ -9,7 +9,7 @@ export class PaymentsController {
 
   @Post(':orderId,:totalAmount')
   async pay(
-    @Param('orderId') orderId: string,
+    @Param('orderId') orderId: number,
     @Param('totalAmount') totalAmount: number,
   ) {
     return this.paymentsService.createPaymentIntent(orderId, totalAmount);
