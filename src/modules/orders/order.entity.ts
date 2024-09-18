@@ -10,9 +10,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../users/user.entity';
-import { OrderStatus } from './order-status';
+import { OrderStatus } from '../../common/enums/order-status';
 import { Product } from '../products/product.entity';
-import { PaymentStatus } from '../payments/payment-status';
+import { PaymentStatus } from '../../common/enums/payment-status';
 
 @Entity()
 export class Order {

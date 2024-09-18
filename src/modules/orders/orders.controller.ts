@@ -20,7 +20,7 @@ import { OrdersService } from './orders.service';
 import { OrderDto } from './order.dto';
 import { Order } from './order.entity';
 import { ORDER_PAGINATION_CONFIG } from './config-order';
-import { OrderStatus } from './order-status';
+import { OrderStatus } from '../../common/enums/order-status';
 import { Stripe } from 'stripe';
 
 @ApiTags('orders')

@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserResetPasswordDto } from './dto/user-reset-password.dto';
 import { User } from '../users/user.entity';
 import { hashPassword } from '../../utility/password';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     private resetPasswordRepository: Repository<ResetPassword>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private emailService: EmailService,
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
@@ -71,11 +73,10 @@ export class AuthService {
     const resetPassword = plainToInstance(ResetPassword, resetPasswordDto);
     resetPassword.email = userEmailDto.email;
 
-    await this.usersService.sendEmail({
-      to: resetPasswordDto.userEmail,
-      subject: 'Reset Password Token',
-      text: resetPasswordDto.token,
-    });
+    await this.emailService.sendResetPasswordEmail(
+      resetPasswordDto.userEmail,
+      resetPasswordDto.token,
+    );
 
     await this.resetPasswordRepository.save(resetPassword);
   }

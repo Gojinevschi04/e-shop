@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderStatus } from './order-status';
-import { PaymentStatus } from '../payments/payment-status';
+import { OrderStatus } from '../../common/enums/order-status';
+import { PaymentStatus } from '../../common/enums/payment-status';
 
 export class OrderDto {
   @ApiProperty()

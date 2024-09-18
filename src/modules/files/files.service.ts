@@ -9,12 +9,14 @@ import { File } from './file.entity';
 import { FileDto } from './file.dto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FilesService {
   constructor(
     @InjectRepository(File)
     private filesRepository: Repository<File>,
+    private configService: ConfigService,
   ) {}
 
   async findAll(): Promise<File[]> {
@@ -46,7 +48,10 @@ export class FilesService {
   }
 
   findUploadedFile(image: string, res: any): Promise<any> {
-    return res.sendFile(image, { root: './storage' });
+    const filePath = this.configService.get<string>(
+      'UPLOADED_FILES_DESTINATION',
+    ) as string;
+    return res.sendFile(image, { root: filePath });
   }
 
   async findOneById(id: number): Promise<File | null> {
@@ -65,7 +70,10 @@ export class FilesService {
       throw new NotFoundException();
     }
     const fileName = file.path;
-    const directoryPath = path.join(__dirname, '..', '..', '..', 'storage/');
+    const fileStoragePath = this.configService.get<string>(
+      'FILES_STORAGE_PATH',
+    ) as string;
+    const directoryPath = path.join(__dirname, fileStoragePath);
 
     return fs.unlink(directoryPath + fileName, function (error) {
       if (error) {

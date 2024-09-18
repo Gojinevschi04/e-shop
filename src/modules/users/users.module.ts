@@ -8,12 +8,9 @@ import { EmailQueue } from './queues/email.queue';
 import { ResetPassword } from '../auth/reset-password.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, ResetPassword]),
-    BullModule.registerQueueAsync({ name: 'email' }),
-  ],
+  imports: [TypeOrmModule.forFeature([User, ResetPassword])],
   exports: [TypeOrmModule, UsersService],
-  providers: [UsersService, EmailQueue],
+  providers: [UsersService],
   controllers: [UsersController],
 })
 export class UsersModule {}

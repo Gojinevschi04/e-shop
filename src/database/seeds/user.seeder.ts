@@ -1,7 +1,7 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
 import { User } from '../../modules/users/user.entity';
-import { UserRole } from '../../modules/users/enums/user.role';
+import { UserRole } from '../../common/enums/user.role';
 
 import * as dotenv from 'dotenv';
 import { hashPassword } from '../../utility/password';

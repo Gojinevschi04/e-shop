@@ -14,15 +14,17 @@ import { Order } from './order.entity';
 import { ORDER_PAGINATION_CONFIG } from './config-order';
 import { plainToInstance } from 'class-transformer';
 import { OrderDto } from './order.dto';
-import { OrderStatus } from './order-status';
+import { OrderStatus } from '../../common/enums/order-status';
 import {
   calculateCartItemsTotalSum,
   calculateProductsTotalSum,
 } from '../../utility/order-utils';
 import { PaymentsService } from '../payments/payments.service';
 import { Stripe } from 'stripe';
-import { PaymentIntentEvent } from '../payments/payment-intent-event';
-import { PaymentStatus } from '../payments/payment-status';
+import { PaymentIntentEvent } from '../../common/enums/payment-intent-event';
+import { PaymentStatus } from '../../common/enums/payment-status';
+import { UsersService } from '../users/users.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class OrdersService {
@@ -36,6 +38,8 @@ export class OrdersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private paymentsService: PaymentsService,
+    private usersService: UsersService,
+    private emailService: EmailService,
   ) {}
 
   async create(user: User, address: string): Promise<OrderDto> {
@@ -71,6 +75,12 @@ export class OrdersService {
     );
     const clientSecret = paymentIntent.client_secret;
     const updatedOrder = { ...savedOrder, clientSecret: clientSecret };
+
+    await this.emailService.sendNewOrderEmail(
+      order.user.email,
+      order.id,
+      order.status,
+    );
 
     return plainToInstance(OrderDto, updatedOrder);
   }
@@ -130,6 +140,13 @@ export class OrdersService {
     }
 
     order.status = status;
+
+    await this.emailService.sendChangedOrderStatusEmail(
+      order.user.email,
+      order.id,
+      order.status,
+    );
+
     return plainToInstance(OrderDto, this.orderRepository.save(order));
   }
 
@@ -169,6 +186,11 @@ export class OrdersService {
     const updateResult = await this.updateOrder(orderId, order);
 
     if (updateResult.affected === 1) {
+      await this.emailService.sendChangedOrderPaymentStatusEmail(
+        order.user.email,
+        order.id,
+        order.paymentStatus,
+      );
       return `Record successfully updated with Payment Status ${order.paymentStatus}`;
     } else {
       throw new UnprocessableEntityException(

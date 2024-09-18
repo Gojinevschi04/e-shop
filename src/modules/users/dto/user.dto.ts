@@ -1,4 +1,4 @@
-import { UserRole } from '../enums/user.role';
+import { UserRole } from '../../../common/enums/user.role';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,

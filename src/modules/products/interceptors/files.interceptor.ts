@@ -20,8 +20,9 @@ function LocalFilesInterceptor(
     fileInterceptor: NestInterceptor;
 
     constructor(configService: ConfigService) {
-      // const filesDestination = configService.get('UPLOADED_FILES_DESTINATION');
-      const filesDestination = './storage';
+      const filesDestination = configService.get<string>(
+        'UPLOADED_FILES_DESTINATION',
+      ) as string;
 
       const destination = `${filesDestination}${options.path}`;
 

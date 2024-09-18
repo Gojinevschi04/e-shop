@@ -88,10 +88,4 @@ export class UsersController {
   async remove(@Param('id') id: number): Promise<void> {
     return this.usersService.remove(id);
   }
-
-  @Public()
-  @Post('/send')
-  async sendEmail(@Body() data: { to: string; subject: string; text: string }) {
-    return this.usersService.sendEmail(data);
-  }
 }
