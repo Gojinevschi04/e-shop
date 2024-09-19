@@ -23,6 +23,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { CartModule } from './modules/cart/cart.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 import stripeConfig from './config/stripe';
 
 @Module({
@@ -73,6 +74,7 @@ import stripeConfig from './config/stripe';
     CartModule,
     OrdersModule,
     PaymentsModule,
+    ReviewsModule,
   ],
   controllers: [AppController, AuthController],
   providers: [

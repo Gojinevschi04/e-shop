@@ -22,6 +22,7 @@ import { Order } from './order.entity';
 import { ORDER_PAGINATION_CONFIG } from './config-order';
 import { OrderStatus } from '../../common/enums/order-status';
 import { Stripe } from 'stripe';
+import { Public } from '../auth/public.decorator';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -77,7 +78,8 @@ export class OrdersController {
     return this.ordersService.remove(id);
   }
 
-  @Post('stripe_webhook')
+  @Public()
+  @Post('stripe/webhook')
   async webhook(@Body() event: Stripe.Event): Promise<object> {
     await this.ordersService.updatePaymentStatus(event);
     return { message: 'success' };

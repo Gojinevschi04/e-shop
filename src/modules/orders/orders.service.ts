@@ -44,6 +44,9 @@ export class OrdersService {
 
   async create(user: User, address: string): Promise<OrderDto> {
     const orderDto = new OrderDto();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     const cartProducts = await this.cartRepository.findBy({
       user: { id: user.id },
@@ -159,11 +162,15 @@ export class OrdersService {
     // @ts-ignore
     const metadata = event.data.object['metadata'] as any;
     const orderId = metadata.orderId as any;
+    if (orderId == null) {
+      throw new BadRequestException('Nonexistent order to update');
+    }
 
     const order = await this.orderRepository.findOneBy({ id: orderId });
     if (!order) {
       throw new NotFoundException('Nonexistent order to update');
     }
+    console.log(1232312);
 
     switch (event.type) {
       case PaymentIntentEvent.Succeeded:
