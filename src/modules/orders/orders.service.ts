@@ -1,8 +1,7 @@
 import {
-  BadRequestException,
+  BadRequestException, forwardRef, Inject,
   Injectable,
   NotFoundException,
-  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CartItem } from '../cart/cart-item.entity';
@@ -20,9 +19,6 @@ import {
   calculateProductsTotalSum,
 } from '../../utility/order-utils';
 import { PaymentsService } from '../payments/payments.service';
-import { Stripe } from 'stripe';
-import { PaymentIntentEvent } from '../../common/enums/payment-intent-event';
-import { PaymentStatus } from '../../common/enums/payment-status';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 
@@ -39,7 +35,7 @@ export class OrdersService {
     private userRepository: Repository<User>,
     private paymentsService: PaymentsService,
     private usersService: UsersService,
-    private emailService: EmailService,
+    public emailService: EmailService,
   ) {}
 
   async create(user: User, address: string): Promise<OrderDto> {
@@ -76,6 +72,7 @@ export class OrdersService {
       savedOrder.id,
       savedOrder.totalSum,
     );
+    console.log(paymentIntent.id);
     const clientSecret = paymentIntent.client_secret;
     const updatedOrder = { ...savedOrder, clientSecret: clientSecret };
 
@@ -156,54 +153,6 @@ export class OrdersService {
   async updateOrder(id: number, order: Order): Promise<UpdateResult> {
     await this.orderRepository.findOneBy({ id: id });
     return await this.orderRepository.update(id, order);
-  }
-
-  async updatePaymentStatus(event: Stripe.Event): Promise<string> {
-    // @ts-ignore
-    const metadata = event.data.object['metadata'] as any;
-    const orderId = metadata.orderId as any;
-    if (orderId == null) {
-      throw new BadRequestException('Nonexistent order to update');
-    }
-
-    const order = await this.orderRepository.findOneBy({ id: orderId });
-    if (!order) {
-      throw new NotFoundException('Nonexistent order to update');
-    }
-    console.log(1232312);
-
-    switch (event.type) {
-      case PaymentIntentEvent.Succeeded:
-        order.paymentStatus = PaymentStatus.Succeeded;
-        break;
-
-      case PaymentIntentEvent.Processing:
-        order.paymentStatus = PaymentStatus.Processing;
-        break;
-
-      case PaymentIntentEvent.Failed:
-        order.paymentStatus = PaymentStatus.Failed;
-        break;
-
-      default:
-        order.paymentStatus = PaymentStatus.Created;
-        break;
-    }
-
-    const updateResult = await this.updateOrder(orderId, order);
-
-    if (updateResult.affected === 1) {
-      await this.emailService.sendChangedOrderPaymentStatusEmail(
-        order.user.email,
-        order.id,
-        order.paymentStatus,
-      );
-      return `Record successfully updated with Payment Status ${order.paymentStatus}`;
-    } else {
-      throw new UnprocessableEntityException(
-        'The payment was not successfully updated',
-      );
-    }
   }
 
   async findAll(query: PaginateQuery): Promise<Paginated<Order>> {
