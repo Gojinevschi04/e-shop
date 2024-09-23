@@ -17,14 +17,16 @@ export class CategoriesService {
   async create(createCategoryDto: CategoryDto): Promise<CategoryDto> {
     const newCategory = plainToInstance(Category, createCategoryDto);
 
-    const parent = await this.categoriesRepository.findOneBy({
-      id: createCategoryDto.parentId,
-    });
+    if (createCategoryDto.parentId != null) {
+      const parent = await this.categoriesRepository.findOneBy({
+        id: createCategoryDto.parentId,
+      });
 
-    if (parent == null) {
-      throw new BadRequestException('Nonexistent parent category');
+      if (parent == null) {
+        throw new BadRequestException('Nonexistent parent category');
+      }
+      newCategory.parent = parent;
     }
-    newCategory.parent = parent;
 
     return plainToInstance(
       CategoryDto,
@@ -51,28 +53,31 @@ export class CategoriesService {
     id: number,
     updateCategoryDto: CategoryDto,
   ): Promise<CategoryDto | null> {
-    const oldCategoryData = await this.categoriesRepository.findOneBy({
+    let categoryData = await this.categoriesRepository.findOneBy({
       id: id,
     });
 
-    if (oldCategoryData == null) {
+    if (categoryData == null) {
       throw new BadRequestException('Nonexistent category to update');
     }
 
-    const categoryData = this.categoriesRepository.merge(
-      oldCategoryData,
+    categoryData = this.categoriesRepository.merge(
+      categoryData,
       updateCategoryDto,
     );
 
-    const parent = await this.categoriesRepository.findOneBy({
-      id: updateCategoryDto.parentId,
-    });
+    if (updateCategoryDto.parentId != null) {
+      const parent = await this.categoriesRepository.findOneBy({
+        id: updateCategoryDto.parentId,
+      });
 
-    if (parent == null) {
-      throw new BadRequestException('Nonexistent parent category');
+      if (parent == null) {
+        throw new BadRequestException('Nonexistent parent category');
+      }
+      categoryData.parent = parent;
+    } else {
+      categoryData.parent = null;
     }
-
-    categoryData.parent = parent;
 
     return plainToInstance(
       CategoryDto,
