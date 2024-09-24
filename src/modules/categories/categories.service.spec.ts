@@ -313,7 +313,7 @@ describe('CategoriesService', () => {
     });
   });
 
-  it('remove => should find a category by a given id, remove and then return Number of affected rows', async () => {
+  it('remove => should find a category by a given id and remove', async () => {
     const id = 1;
 
     const data = {
