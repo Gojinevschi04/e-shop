@@ -9,6 +9,7 @@ import { USER_PAGINATION_CONFIG } from './config-user';
 import { plainToInstance } from 'class-transformer';
 import { UserChangePasswordDto } from './dto/user-change-password.dto';
 import { hashPassword } from '../../utility/password';
+import { UserRole } from '../../common/enums/user.role';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,26 @@ export class UsersService {
 
   async create(createUserDto: UserDto): Promise<UserDto> {
     const user = plainToInstance(User, createUserDto);
+
+    const existingUserByUsername = await this.usersRepository.findOneBy({
+      username: createUserDto.username,
+    });
+
+    if (existingUserByUsername) {
+      throw new BadRequestException('Username already in use');
+    }
+
+    const existingUserByEmail = await this.usersRepository.findOneBy({
+      email: createUserDto.email,
+    });
+
+    if (existingUserByEmail) {
+      throw new BadRequestException('Email address already in use');
+    }
+
+    if (!Object.values(UserRole).includes(createUserDto.role)) {
+      throw new BadRequestException('Invalid user role');
+    }
 
     user.password = await hashPassword(createUserDto.password);
     return plainToInstance(UserDto, this.usersRepository.save(user));
@@ -45,6 +66,10 @@ export class UsersService {
 
     if (oldUserData == null) {
       return null;
+    }
+
+    if (!Object.values(UserRole).includes(updateUserDto.role)) {
+      throw new BadRequestException('Invalid user role');
     }
 
     const userData = this.usersRepository.merge(oldUserData, updateUserDto);

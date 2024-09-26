@@ -10,7 +10,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import {
   ApiBody,
-  ApiCreatedResponse,
+  ApiCreatedResponse, ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -46,6 +46,10 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  @ApiResponse({
+    description: 'User profile',
+    type: UserDto,
+  })
   @UseGuards(JwtAuthGuard)
   @Roles(UserRole.Admin)
   @Get('/profile')

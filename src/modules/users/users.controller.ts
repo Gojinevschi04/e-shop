@@ -14,7 +14,7 @@ import { UserDto } from './dto/user.dto';
 import { User } from './user.entity';
 import {
   ApiBody,
-  ApiCreatedResponse,
+  ApiCreatedResponse, ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -45,7 +45,7 @@ export class UsersController {
 
   @PaginatedSwaggerDocs(User, USER_PAGINATION_CONFIG)
   @Get()
-  @Public()
+  // @Public()
   async findAll(@Paginate() query: PaginateQuery): Promise<Paginated<User>> {
     return await this.usersService.findAll(query);
   }
