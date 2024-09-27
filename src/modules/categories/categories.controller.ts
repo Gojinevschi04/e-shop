@@ -21,7 +21,7 @@ import { Category } from './category.entity';
 import { CATEGORIES_PAGINATION_CONFIG } from './config-categories';
 import { Public } from '../auth/public.decorator';
 
-@Public()
+// @Public()
 @ApiTags('categories')
 @Controller('categories')
 export class CategoriesController {
@@ -66,7 +66,7 @@ export class CategoriesController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.categoriesService.remove(id);
   }
 }

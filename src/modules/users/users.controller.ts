@@ -14,7 +14,8 @@ import { UserDto } from './dto/user.dto';
 import { User } from './user.entity';
 import {
   ApiBody,
-  ApiCreatedResponse, ApiResponse,
+  ApiCreatedResponse,
+  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -85,7 +86,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.usersService.remove(id);
   }
 }

@@ -32,7 +32,6 @@ import { Product } from './product.entity';
 import { PRODUCT_PAGINATION_CONFIG } from './config-product';
 import LocalFilesInterceptor from './interceptors/files.interceptor';
 
-@Public()
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
@@ -73,12 +72,14 @@ export class ProductsController {
     });
   }
 
+  @Public()
   @PaginatedSwaggerDocs(Product, PRODUCT_PAGINATION_CONFIG)
   @Get()
   async findAll(@Paginate() query: PaginateQuery): Promise<Paginated<Product>> {
     return await this.productService.findAll(query);
   }
 
+  @Public()
   @ApiCreatedResponse({
     description: 'Product data found',
     type: ProductDto,
@@ -125,7 +126,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: number): Promise<void> {
+  async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.productService.remove(id);
   }
 }
